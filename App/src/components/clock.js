@@ -8,22 +8,33 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import ColorPicker from 'react-native-wheel-color-picker';
 import Toast from 'react-native-root-toast';
 
 import backIcon from '../icons/back.png';
+import swichLeft from '../icons/toggle.png';
+import swichRight from '../icons/toggle2.png';
 
 export default function clock({navigation, route}) {
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFlicker(flicker => !flicker);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [color, setColor] = useState([
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0,
   ]);
   const [inputColor, setInputColor] = useState('#ffffff');
   const [statusModal, setStatusModal] = useState({location: 0, status: false});
   const [loading, setLoading] = useState(false);
+  const [flicker, setFlicker] = useState(true);
 
   const rgbToHex = (r, g, b) => {
     return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
@@ -94,6 +105,18 @@ export default function clock({navigation, route}) {
       });
   };
 
+  const colorColon = () => {
+    if (color[42] === 0) {
+      return rgbToHex(color[24], color[25], color[26]);
+    } else {
+      if (flicker) {
+        return rgbToHex(color[24], color[25], color[26]);
+      } else {
+        return 'black';
+      }
+    }
+  };
+
   const Loading = (
     <View style={{justifyContent: 'center', alignItems: 'center'}}>
       <ActivityIndicator animating={loading} color="white" size="small" />
@@ -111,327 +134,374 @@ export default function clock({navigation, route}) {
         <Text style={styles.headerText}>Chức năng Thay đổi màu Đồng hồ</Text>
       </View>
 
-      <Text style={styles.inputTitle}>Ngày Dương lịch</Text>
-      <View style={styles.inputCont}>
-        <View style={{flexDirection: 'row'}}>
-          <View>
-            <Text style={{marginTop: 14, width: width / 7}}>Ngày:</Text>
-            <Text style={{marginTop: 14, width: width / 7}}>Tháng:</Text>
-            <Text style={{marginTop: 14, width: width / 7}}>Năm:</Text>
+      <ScrollView
+        style={{
+          height: height - height / 11,
+        }}>
+        <Text style={styles.inputTitle}>Ngày Dương lịch</Text>
+        <View style={styles.inputCont}>
+          <View style={{flexDirection: 'row'}}>
+            <View>
+              <Text style={{marginTop: 14, width: width / 6}}>Ngày:</Text>
+              <Text style={{marginTop: 14, width: width / 6}}>Tháng:</Text>
+              <Text style={{marginTop: 14, width: width / 6}}>Năm:</Text>
+            </View>
+            <View>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 0, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[0], color[1], color[2])},
+                ]}>
+                <Text>{rgbToHex(color[0], color[1], color[2])}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 1, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[3], color[4], color[5])},
+                ]}>
+                <Text>{rgbToHex(color[3], color[4], color[5])}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 2, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[6], color[7], color[8])},
+                ]}>
+                <Text>{rgbToHex(color[6], color[7], color[8])}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <View>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 0, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[0], color[1], color[2])},
-              ]}>
-              <Text>{rgbToHex(color[0], color[1], color[2])}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 1, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[3], color[4], color[5])},
-              ]}>
-              <Text>{rgbToHex(color[3], color[4], color[5])}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 2, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[6], color[7], color[8])},
-              ]}>
-              <Text>{rgbToHex(color[6], color[7], color[8])}</Text>
-            </TouchableOpacity>
+
+          <View style={{flexDirection: 'row', marginLeft: 40}}>
+            <View>
+              <Text style={{marginTop: 14, width: width / 4}}>Dấu chấm:</Text>
+              <Text style={{marginTop: 14, width: width / 6}}>Thứ:</Text>
+            </View>
+            <View>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 4, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[12], color[13], color[14])},
+                ]}>
+                <Text>{rgbToHex(color[12], color[13], color[14])}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 3, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[9], color[10], color[11])},
+                ]}>
+                <Text>{rgbToHex(color[9], color[10], color[11])}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
-        <View style={{flexDirection: 'row', marginLeft: 50}}>
-          <View>
-            <Text style={{marginTop: 14, width: width / 7}}>Thứ:</Text>
-            <Text style={{marginTop: 14, width: width / 4}}>Dấu chấm:</Text>
-          </View>
-          <View>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 3, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[9], color[10], color[11])},
-              ]}>
-              <Text>{rgbToHex(color[9], color[10], color[11])}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 4, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[12], color[13], color[14])},
-              ]}>
-              <Text>{rgbToHex(color[12], color[13], color[14])}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      <Text style={[styles.inputTitle, {width: width / 6}]}>Đồng hồ</Text>
-      <View style={styles.inputCont}>
-        <View style={{flexDirection: 'row'}}>
-          <View>
-            <Text style={{marginTop: 14, width: width / 7}}>Giờ:</Text>
-            <Text style={{marginTop: 14, width: width / 7}}>Phút:</Text>
-            <Text style={{marginTop: 14, width: width / 7}}>Giây:</Text>
-          </View>
-          <View>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 5, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[15], color[16], color[17])},
-              ]}>
-              <Text>{rgbToHex(color[15], color[16], color[17])}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 6, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[18], color[19], color[20])},
-              ]}>
-              <Text>{rgbToHex(color[18], color[19], color[20])}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 7, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[21], color[22], color[23])},
-              ]}>
-              <Text>{rgbToHex(color[21], color[22], color[23])}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={{flexDirection: 'row', marginLeft: 50}}>
-          <View>
-            <Text style={{marginTop: 14, width: width / 4}}>Dấu hai chấm:</Text>
-          </View>
-          <View>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 8, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[24], color[25], color[26])},
-              ]}>
-              <Text>{rgbToHex(color[24], color[25], color[26])}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      <Text style={[styles.inputTitle, {width: width / 4}]}>Ngày Âm lịch</Text>
-      <View style={styles.inputCont}>
-        <View style={{flexDirection: 'row'}}>
-          <View>
-            <Text style={{marginTop: 14, width: width / 7}}>Ngày:</Text>
-            <Text style={{marginTop: 14, width: width / 7}}>Tháng:</Text>
-            <Text style={{marginTop: 14, width: width / 7}}>Năm:</Text>
-          </View>
-          <View>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 9, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[27], color[28], color[29])},
-              ]}>
-              <Text>{rgbToHex(color[27], color[28], color[29])}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 10, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[30], color[31], color[32])},
-              ]}>
-              <Text>{rgbToHex(color[30], color[31], color[32])}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 11, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[33], color[34], color[35])},
-              ]}>
-              <Text>{rgbToHex(color[33], color[34], color[35])}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={{flexDirection: 'row', marginLeft: 50}}>
-          <View>
-            <Text style={{marginTop: 14, width: width / 6}}>Chữ "AL":</Text>
-            <Text style={{marginTop: 14, width: width / 4}}>Dấu chấm:</Text>
-          </View>
-          <View>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 12, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[36], color[37], color[38])},
-              ]}>
-              <Text>{rgbToHex(color[36], color[37], color[38])}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setStatusModal({location: 13, status: true})}
-              style={[
-                styles.itemColor,
-                {backgroundColor: rgbToHex(color[39], color[40], color[41])},
-              ]}>
-              <Text>{rgbToHex(color[39], color[40], color[41])}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-
-      <Text style={[styles.inputTitle, {width: width / 2.8}]}>
-        Màu sắc sẽ hiển thị
-      </Text>
-      <View style={styles.inputCont}>
-        <View style={styles.reviewCont}>
-          <View style={styles.reviewLine}>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {
-                  color: rgbToHex(color[9], color[10], color[11]),
-                  marginRight: 10,
-                },
-              ]}>
-              T3
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {color: rgbToHex(color[0], color[1], color[2])},
-              ]}>
-              08
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {color: rgbToHex(color[12], color[13], color[14])},
-              ]}>
-              .
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {color: rgbToHex(color[3], color[4], color[5])},
-              ]}>
-              03
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {color: rgbToHex(color[12], color[13], color[14])},
-              ]}>
-              .
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {color: rgbToHex(color[6], color[7], color[8])},
-              ]}>
-              22
-            </Text>
+        <Text style={[styles.inputTitle, {width: width / 6}]}>Đồng hồ</Text>
+        <View style={styles.inputCont}>
+          <View style={{flexDirection: 'row'}}>
+            <View>
+              <Text style={{marginTop: 14, width: width / 6}}>Giờ:</Text>
+              <Text style={{marginTop: 14, width: width / 6}}>Phút:</Text>
+              <Text style={{marginTop: 14, width: width / 6}}>Giây:</Text>
+            </View>
+            <View>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 5, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[15], color[16], color[17])},
+                ]}>
+                <Text>{rgbToHex(color[15], color[16], color[17])}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 6, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[18], color[19], color[20])},
+                ]}>
+                <Text>{rgbToHex(color[18], color[19], color[20])}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 7, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[21], color[22], color[23])},
+                ]}>
+                <Text>{rgbToHex(color[21], color[22], color[23])}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          <View style={styles.reviewLine}>
-            <Text
-              style={[
-                styles.reviewLineText2,
-                {
-                  color: rgbToHex(color[15], color[16], color[17]),
-                },
-              ]}>
-              20
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText2,
-                {color: rgbToHex(color[24], color[25], color[26])},
-              ]}>
-              :
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText2,
-                {color: rgbToHex(color[18], color[19], color[20])},
-              ]}>
-              30
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText2,
-                {color: rgbToHex(color[24], color[25], color[26])},
-              ]}>
-              :
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText2,
-                {color: rgbToHex(color[21], color[22], color[23])},
-              ]}>
-              45
-            </Text>
-          </View>
-
-          <View style={styles.reviewLine}>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {
-                  color: rgbToHex(color[27], color[28], color[29]),
-                },
-              ]}>
-              06
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {color: rgbToHex(color[39], color[40], color[41])},
-              ]}>
-              .
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {color: rgbToHex(color[30], color[31], color[32])},
-              ]}>
-              02
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {color: rgbToHex(color[39], color[40], color[41])},
-              ]}>
-              .
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {color: rgbToHex(color[33], color[34], color[35])},
-              ]}>
-              22
-            </Text>
-            <Text
-              style={[
-                styles.reviewLineText,
-                {
-                  color: rgbToHex(color[36], color[37], color[38]),
+          <View style={{flexDirection: 'row', marginLeft: 40}}>
+            <View>
+              <Text style={{marginTop: 14, width: width / 4}}>
+                Dấu hai chấm:
+              </Text>
+              <Text style={{marginTop: 14, width: width / 4}}>
+                Nhấp nháy dấu hai chấm:
+              </Text>
+            </View>
+            <View>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 8, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[24], color[25], color[26])},
+                ]}>
+                <Text>{rgbToHex(color[24], color[25], color[26])}</Text>
+              </TouchableOpacity>
+              <View
+                style={{
+                  flexDirection: 'row',
                   marginLeft: 10,
-                },
-              ]}>
-              AL
-            </Text>
+                  marginTop: 18,
+                  alignItems: 'center',
+                }}>
+                <Text style={{fontSize: 10}}>Off</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    var arrColor = [...color];
+                    arrColor[42] = color[42] === 0 ? 1 : 0;
+                    setColor(arrColor);
+                  }}
+                  style={{marginHorizontal: 5}}>
+                  <Image
+                    style={styles.swichButton}
+                    source={color[42] === 0 ? swichLeft : swichRight}
+                  />
+                </TouchableOpacity>
+                <Text style={{fontSize: 10}}>On</Text>
+              </View>
+            </View>
           </View>
         </View>
-      </View>
+
+        <Text style={[styles.inputTitle, {width: width / 4}]}>
+          Ngày Âm lịch
+        </Text>
+        <View style={styles.inputCont}>
+          <View style={{flexDirection: 'row'}}>
+            <View>
+              <Text style={{marginTop: 14, width: width / 6}}>Ngày:</Text>
+              <Text style={{marginTop: 14, width: width / 6}}>Tháng:</Text>
+            </View>
+            <View>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 9, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[27], color[28], color[29])},
+                ]}>
+                <Text>{rgbToHex(color[27], color[28], color[29])}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 10, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[30], color[31], color[32])},
+                ]}>
+                <Text>{rgbToHex(color[30], color[31], color[32])}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={{flexDirection: 'row', marginLeft: 40}}>
+            <View>
+              <Text style={{marginTop: 14, width: width / 6}}>Năm:</Text>
+              <Text style={{marginTop: 14, width: width / 4}}>Dấu chấm:</Text>
+            </View>
+            <View>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 11, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[33], color[34], color[35])},
+                ]}>
+                <Text>{rgbToHex(color[33], color[34], color[35])}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 12, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[36], color[37], color[38])},
+                ]}>
+                <Text>{rgbToHex(color[36], color[37], color[38])}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        <Text style={[styles.inputTitle, {width: width / 6}]}>Nhiệt độ</Text>
+        <View style={styles.inputCont}>
+          <View style={{flexDirection: 'row'}}>
+            <View>
+              <Text style={{marginTop: 14, width: width / 6}}>Nhiệt độ:</Text>
+            </View>
+            <View>
+              <TouchableOpacity
+                onPress={() => setStatusModal({location: 13, status: true})}
+                style={[
+                  styles.itemColor,
+                  {backgroundColor: rgbToHex(color[39], color[40], color[41])},
+                ]}>
+                <Text>{rgbToHex(color[39], color[40], color[41])}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        <Text style={[styles.inputTitle, {width: width / 2.8}]}>
+          Màu sắc sẽ hiển thị
+        </Text>
+        <View style={styles.inputCont}>
+          <View style={styles.reviewCont}>
+            <View style={styles.reviewLine}>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {
+                    color: rgbToHex(color[9], color[10], color[11]),
+                    marginRight: 10,
+                  },
+                ]}>
+                T3
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {color: rgbToHex(color[0], color[1], color[2])},
+                ]}>
+                08
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {color: rgbToHex(color[12], color[13], color[14])},
+                ]}>
+                .
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {color: rgbToHex(color[3], color[4], color[5])},
+                ]}>
+                03
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {color: rgbToHex(color[12], color[13], color[14])},
+                ]}>
+                .
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {color: rgbToHex(color[6], color[7], color[8])},
+                ]}>
+                22
+              </Text>
+            </View>
+
+            <View style={styles.reviewLine}>
+              <Text
+                style={[
+                  styles.reviewLineText2,
+                  {
+                    color: rgbToHex(color[15], color[16], color[17]),
+                  },
+                ]}>
+                20
+              </Text>
+              <Text style={[styles.reviewLineText2, {color: colorColon()}]}>
+                :
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText2,
+                  {color: rgbToHex(color[18], color[19], color[20])},
+                ]}>
+                30
+              </Text>
+              <Text style={[styles.reviewLineText2, {color: colorColon()}]}>
+                :
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText2,
+                  {color: rgbToHex(color[21], color[22], color[23])},
+                ]}>
+                45
+              </Text>
+            </View>
+
+            <View style={styles.reviewLine}>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {
+                    color: rgbToHex(color[27], color[28], color[29]),
+                  },
+                ]}>
+                06
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {color: rgbToHex(color[36], color[37], color[38])},
+                ]}>
+                .
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {color: rgbToHex(color[30], color[31], color[32])},
+                ]}>
+                02
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {color: rgbToHex(color[36], color[37], color[38])},
+                ]}>
+                .
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {color: rgbToHex(color[33], color[34], color[35])},
+                ]}>
+                22
+              </Text>
+              <Text
+                style={[
+                  styles.reviewLineText,
+                  {
+                    color: rgbToHex(color[39], color[40], color[41]),
+                    marginLeft: 10,
+                  },
+                ]}>
+                35 °C
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[
+            styles.button,
+            {marginLeft: 10, width: width / 5, marginTop: 10, marginBottom: 10},
+          ]}
+          onPress={() => {
+            sendColor();
+          }}>
+          {loading ? Loading : <Text style={styles.buttonText}>Gửi</Text>}
+        </TouchableOpacity>
+      </ScrollView>
 
       <Modal
         animationType="slide"
@@ -482,23 +552,16 @@ export default function clock({navigation, route}) {
           </View>
         </View>
       </Modal>
-
-      <TouchableOpacity
-        style={[
-          styles.button,
-          {marginLeft: 10, width: width / 5, marginTop: 10},
-        ]}
-        onPress={() => {
-          sendColor();
-        }}>
-        {loading ? Loading : <Text style={styles.buttonText}>Gửi</Text>}
-      </TouchableOpacity>
     </View>
   );
 }
 
 const {width, height} = Dimensions.get('window');
 const styles = StyleSheet.create({
+  swichButton: {
+    width: width / 12,
+    height: width / 12,
+  },
   reviewCont: {
     backgroundColor: 'black',
     width: width - 40,

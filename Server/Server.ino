@@ -2,6 +2,8 @@
 #include <string.h>
 #include <ESP8266WebServer.h>
 #include <ArduinoJson.h>
+#include "DHT.h"
+#include<math.h>
 
 #include <Ticker.h>
 #include <PxMatrix.h>
@@ -14,6 +16,10 @@ Ticker display_ticker;
 #include <time.h>
 #include <Fonts/Org_01.h>
 
+const int DHTPIN = 0;
+const int DHTTYPE = DHT11;
+DHT dht(DHTPIN, DHTTYPE);
+
 /* Configuration of NTP */
 #define MY_NTP_SERVER "europe.pool.ntp.org"
 #define MY_TZ "<+07>-7"
@@ -21,8 +27,10 @@ time_t now;
 tm tm;
 int ngayAl, thangAl, namAl, preNgayAl = 0, preThangAl = 0, preNamAl = 0;
 int preDay = 0, preMonth = 0, preYear = 0, preDayOfWeek = 0;
+int preTemp = 0;
 const long utcOffsetInSeconds = 25200;
 bool clockStatus = false;
+bool firstShowClock = false;
 
 // Define NTP Client to get time
 WiFiUDP ntpUDP;
@@ -34,8 +42,10 @@ byte prevmm;
 byte prevss;
 
 int dayDLr = 255, dayDLg = 255, dayDLb = 255, monthDLr = 255, monthDLg = 255, monthDLb = 255, yearDLr = 255, yearDLg = 255, yearDLb = 255, dowDLr = 255, dowDLg = 255, dowDLb = 255, dotDLr = 255, dotDLg = 255, dotDLb = 255;
-int dayALr = 255, dayALg = 255, dayALb = 255, monthALr = 255, monthALg = 255, monthALb = 255, yearALr = 255, yearALg = 255, yearALb = 255, charALr = 255, charALg = 255, charALb = 255, dotALr = 255, dotALg = 255, dotALb = 255;
+int dayALr = 255, dayALg = 255, dayALb = 255, monthALr = 255, monthALg = 255, monthALb = 255, yearALr = 255, yearALg = 255, yearALb = 255, dotALr = 255, dotALg = 255, dotALb = 255;
 int hourR = 255, hourG = 255, hourB = 255, minR = 255, minG = 255, minB = 255, secR = 255, secG = 255, secB = 255, colonR = 255, colonG = 255, colonB = 255;
+int flickerColon = 0;
+int tempR = 255, tempG = 255, tempB = 255;
 
 // Pins for LED MATRIX
 #define P_LAT 16
@@ -65,7 +75,6 @@ Digit digit2(&display, 0, 32, 8, 6, 6, display.color565(minR, minG, minB));
 Digit digit3(&display, 0, 23, 8, 6, 6, display.color565(minR, minG, minB));
 Digit digit4(&display, 0,  9, 8, 6, 6, display.color565(hourR, hourG, hourB));
 Digit digit5(&display, 0,  0, 8, 6, 6, display.color565(hourR, hourG, hourB));
-int changeSpeed = 500;
 
 //Week Days
 String weekDays[7] = {"CN", "T2", "T3", "T4", "T5", "T6", "T7"};
@@ -119,8 +128,6 @@ void json_to_status(String post_body) {
     display.clearDisplay();
     clockStatus = true;
     initClock();
-    digit1.DrawColon(display.color565(colonR, colonG, colonB));
-    digit3.DrawColon(display.color565(colonR, colonG, colonB));
   } else {
     display.clearDisplay();
     clockStatus = false;
@@ -129,7 +136,7 @@ void json_to_status(String post_body) {
 
 void json_to_color(String post_body) {
   int color[45];
-  for (int i = 0; i < 42; i++) {
+  for (int i = 0; i < 43; i++) {
     color[i] = 0;
   }
 
@@ -138,7 +145,7 @@ void json_to_color(String post_body) {
   for (int i = 8; i < post_body.length() - 2; i++) {
     if (post_body[i] != ',') {
       temp += post_body[i];
-      if (j == 41) {
+      if (j == 42) {
         color[j] = temp.toInt();
       }
     } else {
@@ -149,10 +156,10 @@ void json_to_color(String post_body) {
   }
 
   dayDLr = color[0]; dayDLg = color[1]; dayDLb = color[2]; monthDLr = color[3]; monthDLg = color[4]; monthDLb = color[5]; yearDLr = color[6]; yearDLg = color[7]; yearDLb = color[8]; dowDLr = color[9]; dowDLg = color[10]; dowDLb = color[11]; dotDLr = color[12]; dotDLg = color[13]; dotDLb = color[14];
-  dayALr = color[27]; dayALg = color[28]; dayALb = color[29]; monthALr = color[30]; monthALg = color[31]; monthALb = color[32]; yearALr = color[33]; yearALg = color[34]; yearALb = color[35]; charALr = color[36]; charALg = color[37]; charALb = color[38]; dotALr = color[39]; dotALg = color[40]; dotALb = color[41];
+  dayALr = color[27]; dayALg = color[28]; dayALb = color[29]; monthALr = color[30]; monthALg = color[31]; monthALb = color[32]; yearALr = color[33]; yearALg = color[34]; yearALb = color[35]; dotALr = color[36]; dotALg = color[37]; dotALb = color[38];
   hourR = color[15]; hourG = color[16]; hourB = color[17]; minR = color[18]; minG = color[19]; minB = color[20]; secR = color[21]; secG = color[22]; secB = color[23]; colonR = color[24]; colonG = color[25]; colonB = color[26];
-  digit1.DrawColon(display.color565(colonR, colonG, colonB));
-  digit3.DrawColon(display.color565(colonR, colonG, colonB));
+  tempR = color[39]; tempG = color[40]; tempB = color[41];
+  flickerColon = color[42];
   digit0.SetColor(display.color565(secR, secG, secB));
   digit1.SetColor(display.color565(secR, secG, secB));
   digit2.SetColor(display.color565(minR, minG, minB));
@@ -254,23 +261,59 @@ void clearPixel(int x1, int x2) {
   }
 }
 
+void clearTemp() {
+  for (int i = 44; i < 55; i++) {
+    for (int j = 27; j <= 31; j++) {
+      display.drawPixelRGB888(i, j, 0, 0, 0);
+    }
+  }
+}
+
 void initClock() {
   preNgayAl = 0; preThangAl = 0; preNamAl = 0;
   preDay = 0; preMonth = 0; preYear = 0; preDayOfWeek = 0;
   prevEpoch = 0;
+  preTemp = 0;
+  firstShowClock = true;
+}
+
+void printTemp() {
+  int temp = int(round(dht.readTemperature()));
+  if (temp != preTemp) {
+    clearTemp();
+    display.setTextColor(display.color565(tempR, tempG, tempB));
+    
+    display.setCursor(44, 31);
+    display.println(temp);
+
+    display.drawPixelRGB888(57, 27, tempR, tempG, tempB);
+    display.drawPixelRGB888(56, 27, tempR, tempG, tempB);
+    display.drawPixelRGB888(57, 28, tempR, tempG, tempB);
+    display.drawPixelRGB888(56, 28, tempR, tempG, tempB);
+    
+    display.setCursor(59, 31);
+    display.println("C");
+
+    preTemp = temp;
+  }
 }
 
 void printDate() {
-  time(&now);                       // read the current time
-  localtime_r(&now, &tm);           // update the structure tm with the current time
+  int hh = ntpClient.getHours();
+  int mm = ntpClient.getMinutes();
+  int ss = ntpClient.getSeconds();
 
-  int dd, mm, yy, dow;
-  dd = tm.tm_mday;
-  mm = tm.tm_mon + 1;
-  yy = tm.tm_year + 1900;
-  dow = tm.tm_wday;
+  if ((hh == 0 && mm == 0 && ss == 1) || firstShowClock == true) {
+    //Duong Lich
+    time(&now);                       // read the current time
+    localtime_r(&now, &tm);           // update the structure tm with the current time
 
-  if (preDayOfWeek != dow || preDay != dd || preMonth != mm || preYear != yy) {
+    int dd, mm, yy, dow;
+    dd = tm.tm_mday;
+    mm = tm.tm_mon + 1;
+    yy = tm.tm_year + 1900;
+    dow = tm.tm_wday;
+
     clearPixel(1, 5);
     display.setTextSize(1);
     display.setFont(&Org_01);
@@ -313,49 +356,45 @@ void printDate() {
     preMonth = mm;
     preYear = yy;
 
+    //Am Lich
     convertSolar2Lunar(dd, mm, yy);
-    if (preNgayAl != ngayAl || preThangAl != thangAl || preNamAl != namAl) {
-      clearPixel(27, 31);
-      display.setTextSize(1);
-      display.setFont(&Org_01);
+    clearPixel(27, 31);
+    display.setTextSize(1);
+    display.setFont(&Org_01);
 
-      display.setTextColor(display.color565(dayALr, dayALg, dayALb));
-      display.setCursor(3, 31);
-      if (ngayAl < 10) {
-        display.println("0" + String(ngayAl)); //Day
-      } else {
-        display.println(String(ngayAl)); //Day
-      }
-
-      display.setTextColor(display.color565(dotALr, dotALg, dotALb));
-      display.setCursor(15, 31);
-      display.println("."); //Dot
-
-      display.setTextColor(display.color565(monthALr, monthALg, monthALb));
-      display.setCursor(17, 31);
-      if (thangAl < 10) {
-        display.println("0" + String(thangAl)); //Month
-      } else {
-        display.println(String(thangAl)); //Month
-      }
-
-      display.setTextColor(display.color565(dotALr, dotALg, dotALb));
-      display.setCursor(29, 31);
-      display.println("."); //Dot
-
-
-      display.setTextColor(display.color565(yearALr, yearALg, yearALb));
-      display.setCursor(31, 31);
-      display.println(String(namAl - 2000)); //Year
-
-      display.setTextColor(display.color565(charALr, charALg, charALb));
-      display.setCursor(49, 31);
-      display.println("AL"); //AL
-
-      preNgayAl = ngayAl;
-      preThangAl = thangAl;
-      preNamAl = namAl;
+    display.setTextColor(display.color565(dayALr, dayALg, dayALb));
+    display.setCursor(0, 31);
+    if (ngayAl < 10) {
+      display.println("0" + String(ngayAl)); //Day
+    } else {
+      display.println(String(ngayAl)); //Day
     }
+
+    display.setTextColor(display.color565(dotALr, dotALg, dotALb));
+    display.setCursor(12, 31);
+    display.println("."); //Dot
+
+    display.setTextColor(display.color565(monthALr, monthALg, monthALb));
+    display.setCursor(14, 31);
+    if (thangAl < 10) {
+      display.println("0" + String(thangAl)); //Month
+    } else {
+      display.println(String(thangAl)); //Month
+    }
+
+    display.setTextColor(display.color565(dotALr, dotALg, dotALb));
+    display.setCursor(26, 31);
+    display.println("."); //Dot
+
+
+    display.setTextColor(display.color565(yearALr, yearALg, yearALb));
+    display.setCursor(28, 31);
+    display.println(String(namAl - 2000)); //Year
+
+    preNgayAl = ngayAl;
+    preThangAl = thangAl;
+    preNamAl = namAl;
+    firstShowClock = false;
   }
 }
 
@@ -369,6 +408,19 @@ void printTime() {
     int hh = ntpClient.getHours();
     int mm = ntpClient.getMinutes();
     int ss = ntpClient.getSeconds();
+
+    if (flickerColon == 0) {
+      digit1.DrawColon(display.color565(colonR, colonG, colonB));
+      digit3.DrawColon(display.color565(colonR, colonG, colonB));
+    } else {
+      if (ss % 2 == 0) {
+        digit1.DrawColon(display.color565(colonR, colonG, colonB));
+        digit3.DrawColon(display.color565(colonR, colonG, colonB));
+      } else {
+        digit1.DrawColon(display.color565(0, 0, 0));
+        digit3.DrawColon(display.color565(0, 0, 0));
+      }
+    }
 
     if (prevEpoch == 0) { // If we didn't have a previous time. Just draw it without morphing.
       digit0.Draw(ss % 10);
@@ -576,6 +628,7 @@ void setup(void) {
   Serial.begin(9600);
 
   configTime(MY_TZ, MY_NTP_SERVER);
+  dht.begin();
 
   if (init_wifi() == WL_CONNECTED) {
     Serial.print("Connetted to ");
@@ -618,5 +671,6 @@ void loop(void) {
   if (clockStatus) {
     printTime();
     printDate();
+    printTemp();
   }
 }
