@@ -60,7 +60,6 @@ PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 
 #define HTTP_REST_PORT 80
 #define WIFI_RETRY_DELAY 500
-#define MAX_WIFI_INIT_RETRY 50
 
 uint16_t arr[2050];
 
@@ -82,15 +81,12 @@ String weekDays[7] = {"CN", "T2", "T3", "T4", "T5", "T6", "T7"};
 ESP8266WebServer http_rest_server(HTTP_REST_PORT);
 
 int init_wifi() {
-  int retries = 0;
-
   Serial.println("Connecting to WiFi AP..........");
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(wifi_ssid, wifi_passwd);
   // check the status of WiFi connection to be WL_CONNECTED
-  while ((WiFi.status() != WL_CONNECTED) && (retries < MAX_WIFI_INIT_RETRY)) {
-    retries++;
+  while ((WiFi.status() != WL_CONNECTED)) {
     delay(WIFI_RETRY_DELAY);
     Serial.print("#");
   }
@@ -253,17 +249,9 @@ void display_update_enable(bool is_enable)
     display_ticker.detach();
 }
 
-void clearPixel(int x1, int x2) {
-  for (int i = 0; i < 64; i++) {
+void clearPixel(int x1, int y1, int x2, int y2) {
+  for (int i = y1; i <= y2; i++) {
     for (int j = x1; j <= x2; j++) {
-      display.drawPixelRGB888(i, j, 0, 0, 0);
-    }
-  }
-}
-
-void clearTemp() {
-  for (int i = 44; i < 55; i++) {
-    for (int j = 27; j <= 31; j++) {
       display.drawPixelRGB888(i, j, 0, 0, 0);
     }
   }
@@ -279,22 +267,25 @@ void initClock() {
 
 void printTemp() {
   int temp = int(round(dht.readTemperature()));
-  if (temp != preTemp) {
-    clearTemp();
-    display.setTextColor(display.color565(tempR, tempG, tempB));
-    
-    display.setCursor(44, 31);
-    display.println(temp);
 
-    display.drawPixelRGB888(57, 27, tempR, tempG, tempB);
-    display.drawPixelRGB888(56, 27, tempR, tempG, tempB);
-    display.drawPixelRGB888(57, 28, tempR, tempG, tempB);
-    display.drawPixelRGB888(56, 28, tempR, tempG, tempB);
-    
-    display.setCursor(59, 31);
-    display.println("C");
+  if (!isnan(temp)) {
+    if (temp != preTemp) {
+      clearPixel(27, 44, 31, 54);
+      display.setTextColor(display.color565(tempR, tempG, tempB));
 
-    preTemp = temp;
+      display.setCursor(44, 31);
+      display.println(temp);
+
+      display.drawPixelRGB888(57, 27, tempR, tempG, tempB);
+      display.drawPixelRGB888(56, 27, tempR, tempG, tempB);
+      display.drawPixelRGB888(57, 28, tempR, tempG, tempB);
+      display.drawPixelRGB888(56, 28, tempR, tempG, tempB);
+
+      display.setCursor(59, 31);
+      display.println("C");
+
+      preTemp = temp;
+    }
   }
 }
 
@@ -314,7 +305,7 @@ void printDate() {
     yy = tm.tm_year + 1900;
     dow = tm.tm_wday;
 
-    clearPixel(1, 5);
+    clearPixel(1, 0, 5, 63);
     display.setTextSize(1);
     display.setFont(&Org_01);
 
@@ -358,7 +349,7 @@ void printDate() {
 
     //Am Lich
     convertSolar2Lunar(dd, mm, yy);
-    clearPixel(27, 31);
+    clearPixel(27, 0, 31, 39);
     display.setTextSize(1);
     display.setFont(&Org_01);
 
@@ -663,6 +654,10 @@ void setup(void) {
   display.print(WiFi.localIP());
 
   display_update_enable(true);
+  delay(5000);
+  display.clearDisplay();
+  clockStatus = true;
+  initClock();
 }
 
 void loop(void) {
