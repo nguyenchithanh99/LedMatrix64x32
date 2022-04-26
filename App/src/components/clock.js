@@ -31,7 +31,7 @@ export default function clock({navigation, route}) {
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0,
   ]);
-  const [inputColor, setInputColor] = useState('#ffffff');
+  const [inputColor, setInputColor] = useState('ffffff');
   const [statusModal, setStatusModal] = useState({location: 0, status: false});
   const [loading, setLoading] = useState(false);
   const [flicker, setFlicker] = useState(true);
@@ -58,13 +58,20 @@ export default function clock({navigation, route}) {
   };
 
   const saveColor = () => {
-    var arrColor = [...color];
-    arrColor[statusModal.location * 3] = hexToRgb(inputColor).r;
-    arrColor[statusModal.location * 3 + 1] = hexToRgb(inputColor).g;
-    arrColor[statusModal.location * 3 + 2] = hexToRgb(inputColor).b;
-    setColor(arrColor);
-    setInputColor('#ffffff');
-    setStatusModal({location: 0, status: false});
+    if (hexToRgb('#' + inputColor) !== null) {
+      var arrColor = [...color];
+      arrColor[statusModal.location * 3] = hexToRgb('#' + inputColor).r;
+      arrColor[statusModal.location * 3 + 1] = hexToRgb('#' + inputColor).g;
+      arrColor[statusModal.location * 3 + 2] = hexToRgb('#' + inputColor).b;
+      setColor(arrColor);
+      setInputColor('ffffff');
+      setStatusModal({location: 0, status: false});
+    } else {
+      Toast.show('Vui lòng kiểm tra lại mã màu đã nhập', {
+        position: 20,
+        duration: 2000,
+      });
+    }
   };
 
   const sendColor = () => {
@@ -115,6 +122,27 @@ export default function clock({navigation, route}) {
         return 'black';
       }
     }
+  };
+
+  const generateColor = () => {
+    const randomColor = Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, '0');
+    return `#${randomColor}`;
+  };
+
+  const randomColor = () => {
+    var arrColor = [...color];
+    for (let i = 0; i < 14; i++) {
+      var genColor = generateColor();
+      arrColor[i * 3] = hexToRgb(genColor).r;
+      arrColor[i * 3 + 1] = hexToRgb(genColor).g;
+      arrColor[i * 3 + 2] = hexToRgb(genColor).b;
+    }
+    arrColor[42] = Math.random() < 0.5 ? 1 : 0;
+    setColor(arrColor);
+    setInputColor('ffffff');
+    setStatusModal({location: 0, status: false});
   };
 
   const Loading = (
@@ -491,16 +519,37 @@ export default function clock({navigation, route}) {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={[
-            styles.button,
-            {marginLeft: 10, width: width / 5, marginTop: 10, marginBottom: 10},
-          ]}
-          onPress={() => {
-            sendColor();
-          }}>
-          {loading ? Loading : <Text style={styles.buttonText}>Gửi</Text>}
-        </TouchableOpacity>
+        <View style={{flexDirection: 'row'}}>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                marginLeft: 10,
+                width: width / 5,
+                marginTop: 10,
+                marginBottom: 10,
+              },
+            ]}
+            onPress={() => {
+              sendColor();
+            }}>
+            {loading ? Loading : <Text style={styles.buttonText}>Gửi</Text>}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                marginLeft: 10,
+                marginTop: 10,
+                marginBottom: 10,
+              },
+            ]}
+            onPress={() => {
+              randomColor();
+            }}>
+            <Text style={styles.buttonText}>Random Color</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <Modal
@@ -511,13 +560,19 @@ export default function clock({navigation, route}) {
           <View style={styles.modalView}>
             <Text style={styles.inputTitleModal}>Mã màu</Text>
             <View style={styles.inputContModal}>
+              <Text style={{color: 'black', marginTop: 6, marginLeft: 15}}>
+                #
+              </Text>
               <TextInput
                 spellCheck={false}
                 autoCorrect={false}
                 style={styles.inputModal}
                 onChangeText={text => setInputColor(text)}
                 value={inputColor}
-                underlineColorAndroid={false}
+                underlineColorAndroid="transparent"
+                letterSpacing={0.5}
+                autoCapitalize="none"
+                maxLength={6}
               />
             </View>
 
@@ -529,7 +584,7 @@ export default function clock({navigation, route}) {
               swatches
               autoResetSlider
               onColorChangeComplete={color => {
-                setInputColor(color);
+                setInputColor(color.slice(1, 7));
               }}
             />
 
@@ -580,7 +635,7 @@ const styles = StyleSheet.create({
   inputModal: {
     padding: 0,
     marginTop: 8,
-    marginLeft: 15,
+    marginLeft: 5,
   },
   inputContModal: {
     borderColor: '#8a8a8a',

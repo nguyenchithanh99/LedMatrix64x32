@@ -29,11 +29,6 @@ export default function main({navigation}) {
         position: 0,
         duration: 2500,
       });
-    } else {
-      Toast.show('Lưu địa chỉ IP thành công', {
-        position: 0,
-        duration: 2000,
-      });
     }
   };
 
@@ -45,17 +40,18 @@ export default function main({navigation}) {
       });
     } else {
       if (type === 'image') {
-        navigation.navigate('Image', {ip: ip});
+        navigation.navigate('Image', {ip: '192.168.1.' + ip});
       } else if (type === 'paint') {
-        navigation.navigate('Paint', {ip: ip});
+        navigation.navigate('Paint', {ip: '192.168.1.' + ip});
       } else {
-        navigation.navigate('Clock', {ip: ip});
+        navigation.navigate('Clock', {ip: '192.168.1.' + ip});
       }
     }
   };
 
   const swichClock = status => {
-    fetch('http://' + ip + '/swich', {
+    Keyboard.dismiss();
+    fetch('http://192.168.1.' + ip + '/swich', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -92,15 +88,30 @@ export default function main({navigation}) {
       </View>
       <Text style={styles.inputTitle}>Nhập IP ESP8266 Led Matrix</Text>
       <View style={styles.inputCont}>
-        <TextInput
-          style={styles.input}
-          onChangeText={text => setIp(text)}
-          value={ip}
-          placeholder="IP"
-          onSubmitEditing={event => {
-            checkIp();
-          }}
-        />
+        <View style={{flexDirection: 'row'}}>
+          <Text
+            style={{
+              color: '#666666',
+              marginLeft: 10,
+              fontSize: 14,
+              marginTop: 11,
+            }}>
+            192.168.1.
+          </Text>
+          <TextInput
+            style={styles.input}
+            onChangeText={text => setIp(text)}
+            value={ip}
+            keyboardType="numeric"
+            maxLength={3}
+            placeholder="IP"
+            underlineColorAndroid="transparent"
+            autoCapitalize="none"
+            onSubmitEditing={event => {
+              checkIp();
+            }}
+          />
+        </View>
         <TouchableOpacity onPress={() => checkIp()}>
           <Image style={styles.inputImage} source={saveIcon} />
         </TouchableOpacity>
@@ -228,8 +239,9 @@ const styles = StyleSheet.create({
   input: {
     height: 43,
     color: '#666666',
-    marginLeft: 6,
     fontSize: 14,
-    width: width - 75,
+    width: width / 10,
+    padding: 0,
+    paddingLeft: 1,
   },
 });
