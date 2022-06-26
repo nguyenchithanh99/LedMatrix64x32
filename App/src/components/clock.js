@@ -29,12 +29,17 @@ export default function clock({navigation, route}) {
   const [color, setColor] = useState([
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0,
+    255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0,
+    0,
   ]);
   const [inputColor, setInputColor] = useState('ffffff');
   const [statusModal, setStatusModal] = useState({location: 0, status: false});
   const [loading, setLoading] = useState(false);
   const [flicker, setFlicker] = useState(true);
+  const [hourOn, setHourOn] = useState(6);
+  const [hourOff, setHourOff] = useState(1);
+  const [minOn, setMinOn] = useState(0);
+  const [minOff, setMinOff] = useState(0);
 
   const rgbToHex = (r, g, b) => {
     return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
@@ -75,6 +80,9 @@ export default function clock({navigation, route}) {
   };
 
   const sendColor = () => {
+    if (color[43] === 1 && !checkTime()) {
+      return;
+    }
     setLoading(true);
     fetch('http://' + route.params.ip + '/color', {
       method: 'POST',
@@ -145,6 +153,37 @@ export default function clock({navigation, route}) {
     setStatusModal({location: 0, status: false});
   };
 
+  const checkTime = () => {
+    if (
+      hourOn !== '' &&
+      hourOn >= 0 &&
+      hourOn <= 23 &&
+      hourOff !== '' &&
+      hourOff >= 0 &&
+      hourOff <= 23 &&
+      minOn !== '' &&
+      minOn >= 0 &&
+      minOn <= 59 &&
+      minOff !== '' &&
+      minOff >= 0 &&
+      minOff <= 59
+    ) {
+      var arrColor = [...color];
+      arrColor[44] = hourOn;
+      arrColor[45] = minOn;
+      arrColor[46] = hourOff;
+      arrColor[47] = minOff;
+      setColor(arrColor);
+      return true;
+    } else {
+      Toast.show('Vui lòng kiểm tra lại thời gian bật/tắt', {
+        position: 0,
+        duration: 2000,
+      });
+      return false;
+    }
+  };
+
   const Loading = (
     <View style={{justifyContent: 'center', alignItems: 'center'}}>
       <ActivityIndicator animating={loading} color="white" size="small" />
@@ -170,9 +209,9 @@ export default function clock({navigation, route}) {
         <View style={styles.inputCont}>
           <View style={{flexDirection: 'row'}}>
             <View>
-              <Text style={{marginTop: 14, width: width / 6}}>Ngày:</Text>
-              <Text style={{marginTop: 14, width: width / 6}}>Tháng:</Text>
-              <Text style={{marginTop: 14, width: width / 6}}>Năm:</Text>
+              <Text style={{marginTop: 14, width: width / 6.5}}>Ngày:</Text>
+              <Text style={{marginTop: 14, width: width / 6.5}}>Tháng:</Text>
+              <Text style={{marginTop: 14, width: width / 6.5}}>Năm:</Text>
             </View>
             <View>
               <TouchableOpacity
@@ -204,8 +243,8 @@ export default function clock({navigation, route}) {
 
           <View style={{flexDirection: 'row', marginLeft: 40}}>
             <View>
-              <Text style={{marginTop: 14, width: width / 4}}>Dấu chấm:</Text>
-              <Text style={{marginTop: 14, width: width / 6}}>Thứ:</Text>
+              <Text style={{marginTop: 14, width: width / 4.5}}>Dấu chấm:</Text>
+              <Text style={{marginTop: 14, width: width / 6.5}}>Thứ:</Text>
             </View>
             <View>
               <TouchableOpacity
@@ -228,13 +267,13 @@ export default function clock({navigation, route}) {
           </View>
         </View>
 
-        <Text style={[styles.inputTitle, {width: width / 6}]}>Đồng hồ</Text>
+        <Text style={[styles.inputTitle, {width: width / 4.7}]}>Đồng hồ</Text>
         <View style={styles.inputCont}>
           <View style={{flexDirection: 'row'}}>
             <View>
-              <Text style={{marginTop: 14, width: width / 6}}>Giờ:</Text>
-              <Text style={{marginTop: 14, width: width / 6}}>Phút:</Text>
-              <Text style={{marginTop: 14, width: width / 6}}>Giây:</Text>
+              <Text style={{marginTop: 14, width: width / 6.5}}>Giờ:</Text>
+              <Text style={{marginTop: 14, width: width / 6.5}}>Phút:</Text>
+              <Text style={{marginTop: 14, width: width / 6.5}}>Giây:</Text>
             </View>
             <View>
               <TouchableOpacity
@@ -266,10 +305,10 @@ export default function clock({navigation, route}) {
 
           <View style={{flexDirection: 'row', marginLeft: 40}}>
             <View>
-              <Text style={{marginTop: 14, width: width / 4}}>
+              <Text style={{marginTop: 14, width: width / 4.5}}>
                 Dấu hai chấm:
               </Text>
-              <Text style={{marginTop: 14, width: width / 4}}>
+              <Text style={{marginTop: 14, width: width / 4.5}}>
                 Nhấp nháy dấu hai chấm:
               </Text>
             </View>
@@ -308,14 +347,14 @@ export default function clock({navigation, route}) {
           </View>
         </View>
 
-        <Text style={[styles.inputTitle, {width: width / 4}]}>
+        <Text style={[styles.inputTitle, {width: width / 3.3}]}>
           Ngày Âm lịch
         </Text>
         <View style={styles.inputCont}>
           <View style={{flexDirection: 'row'}}>
             <View>
-              <Text style={{marginTop: 14, width: width / 6}}>Ngày:</Text>
-              <Text style={{marginTop: 14, width: width / 6}}>Tháng:</Text>
+              <Text style={{marginTop: 14, width: width / 6.5}}>Ngày:</Text>
+              <Text style={{marginTop: 14, width: width / 6.5}}>Tháng:</Text>
             </View>
             <View>
               <TouchableOpacity
@@ -339,8 +378,8 @@ export default function clock({navigation, route}) {
 
           <View style={{flexDirection: 'row', marginLeft: 40}}>
             <View>
-              <Text style={{marginTop: 14, width: width / 6}}>Năm:</Text>
-              <Text style={{marginTop: 14, width: width / 4}}>Dấu chấm:</Text>
+              <Text style={{marginTop: 14, width: width / 6.5}}>Năm:</Text>
+              <Text style={{marginTop: 14, width: width / 4.5}}>Dấu chấm:</Text>
             </View>
             <View>
               <TouchableOpacity
@@ -363,11 +402,11 @@ export default function clock({navigation, route}) {
           </View>
         </View>
 
-        <Text style={[styles.inputTitle, {width: width / 6}]}>Nhiệt độ</Text>
+        <Text style={[styles.inputTitle, {width: width / 5}]}>Nhiệt độ</Text>
         <View style={styles.inputCont}>
           <View style={{flexDirection: 'row'}}>
             <View>
-              <Text style={{marginTop: 14, width: width / 6}}>Nhiệt độ:</Text>
+              <Text style={{marginTop: 14, width: width / 6.5}}>Nhiệt độ:</Text>
             </View>
             <View>
               <TouchableOpacity
@@ -382,7 +421,7 @@ export default function clock({navigation, route}) {
           </View>
         </View>
 
-        <Text style={[styles.inputTitle, {width: width / 2.8}]}>
+        <Text style={[styles.inputTitle, {width: width / 2.4}]}>
           Màu sắc sẽ hiển thị
         </Text>
         <View style={styles.inputCont}>
@@ -519,6 +558,104 @@ export default function clock({navigation, route}) {
           </View>
         </View>
 
+        <Text style={[styles.inputTitle, {width: width / 3.5}]}>
+          Hẹn giờ bật/tắt
+        </Text>
+        <View style={[styles.inputCont, {flexDirection: 'column'}]}>
+          <View
+            style={{
+              flexDirection: 'row',
+              marginTop: 10,
+              alignItems: 'center',
+            }}>
+            <Text style={{fontSize: 10}}>Off</Text>
+            <TouchableOpacity
+              onPress={() => {
+                var arrColor = [...color];
+                arrColor[43] = color[43] === 0 ? 1 : 0;
+                setColor(arrColor);
+              }}
+              style={{marginHorizontal: 5}}>
+              <Image
+                style={styles.swichButton}
+                source={color[43] === 0 ? swichLeft : swichRight}
+              />
+            </TouchableOpacity>
+            <Text style={{fontSize: 10}}>On</Text>
+          </View>
+          <View style={{flexDirection: 'row'}}>
+            <Text style={{marginTop: 14, width: width / 6.5}}>Bật lúc:</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <TextInput
+                editable={Boolean(color[43])}
+                spellCheck={false}
+                autoCorrect={false}
+                keyboardType={'number-pad'}
+                style={styles.inputTime}
+                onChangeText={text =>
+                  setHourOn(!isNaN(parseInt(text)) ? parseInt(text) : '')
+                }
+                value={hourOn.toString()}
+                underlineColorAndroid="transparent"
+                autoCapitalize="none"
+                maxLength={2}
+              />
+              <Text style={styles.timeText}>Giờ</Text>
+              <TextInput
+                editable={Boolean(color[43])}
+                spellCheck={false}
+                autoCorrect={false}
+                keyboardType={'number-pad'}
+                style={styles.inputTime}
+                onChangeText={text =>
+                  setMinOn(!isNaN(parseInt(text)) ? parseInt(text) : '')
+                }
+                value={minOn.toString()}
+                underlineColorAndroid="transparent"
+                autoCapitalize="none"
+                maxLength={2}
+              />
+              <Text style={styles.timeText}>Phút</Text>
+            </View>
+          </View>
+
+          <View style={{flexDirection: 'row'}}>
+            <Text style={{marginTop: 14, width: width / 6.5}}>Tắt lúc:</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+              <TextInput
+                editable={Boolean(color[43])}
+                spellCheck={false}
+                autoCorrect={false}
+                keyboardType={'number-pad'}
+                style={styles.inputTime}
+                onChangeText={text =>
+                  setHourOff(!isNaN(parseInt(text)) ? parseInt(text) : '')
+                }
+                value={hourOff.toString()}
+                underlineColorAndroid="transparent"
+                autoCapitalize="none"
+                maxLength={2}
+              />
+              <Text style={styles.timeText}>Giờ</Text>
+              <TextInput
+                editable={Boolean(color[43])}
+                spellCheck={false}
+                autoCorrect={false}
+                keyboardType={'number-pad'}
+                style={styles.inputTime}
+                onChangeText={text =>
+                  setMinOff(!isNaN(parseInt(text)) ? parseInt(text) : '')
+                }
+                value={minOff.toString()}
+                underlineColorAndroid="transparent"
+                autoCapitalize="none"
+                maxLength={2}
+              />
+              <Text style={styles.timeText}>Phút</Text>
+            </View>
+          </View>
+        </View>
+
         <View style={{flexDirection: 'row'}}>
           <TouchableOpacity
             style={[
@@ -637,6 +774,20 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginLeft: 5,
   },
+  inputTime: {
+    borderColor: '#8a8a8a',
+    borderRadius: 5,
+    borderWidth: 1,
+    backgroundColor: 'white',
+    width: width / 10,
+    height: 25,
+    marginLeft: 10,
+    marginTop: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 0,
+    textAlign: 'center',
+  },
   inputContModal: {
     borderColor: '#8a8a8a',
     borderRadius: 5,
@@ -722,7 +873,7 @@ const styles = StyleSheet.create({
     marginBottom: -9,
     backgroundColor: '#f2f2f2',
     zIndex: 1,
-    width: width / 3.5,
+    width: width / 2.6,
     textAlign: 'center',
   },
   header: {
@@ -749,5 +900,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginLeft: 10,
     padding: 3,
+  },
+  timeText: {
+    marginTop: 12,
+    marginLeft: 5,
+    marginRight: 12,
   },
 });

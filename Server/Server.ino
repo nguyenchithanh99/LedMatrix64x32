@@ -113,21 +113,11 @@ void json_to_arr(String post_body) {
     }
   }
 
+  clockStatus = false;
   display_ticker.attach(0.002, display_updater);
   yield();
   display.clearDisplay();
   drawImage(0, 0, arr);
-}
-
-void json_to_status(String post_body) {
-  if (post_body[10] == '1') {
-    display.clearDisplay();
-    clockStatus = true;
-    initClock();
-  } else {
-    display.clearDisplay();
-    clockStatus = false;
-  }
 }
 
 void json_to_color(String post_body) {
@@ -162,6 +152,9 @@ void json_to_color(String post_body) {
   digit3.SetColor(display.color565(minR, minG, minB));
   digit4.SetColor(display.color565(hourR, hourG, hourB));
   digit5.SetColor(display.color565(hourR, hourG, hourB));
+
+  display.clearDisplay();
+  clockStatus = true;
   initClock();
 }
 
@@ -172,20 +165,6 @@ void post_arr() {
 
   if (http_rest_server.method() == HTTP_POST) {
     json_to_arr(post_body);
-
-    StaticJsonDocument<200> res;
-    char JSONmessageBuffer[200];
-    res["res"] = "Success";
-    serializeJsonPretty(res, JSONmessageBuffer, sizeof(JSONmessageBuffer));
-    http_rest_server.send(200, "application/json", JSONmessageBuffer);
-  }
-}
-
-void swichClock() {
-  String post_body = http_rest_server.arg("plain");
-
-  if (http_rest_server.method() == HTTP_POST) {
-    json_to_status(post_body);
 
     StaticJsonDocument<200> res;
     char JSONmessageBuffer[200];
@@ -215,7 +194,6 @@ void config_rest_server_routing() {
                           "Welcome to the ESP8266 REST Web Server");
   });
   http_rest_server.on("/arr", HTTP_POST, post_arr);
-  http_rest_server.on("/swich", HTTP_POST, swichClock);
   http_rest_server.on("/color", HTTP_POST, changeColor);
 }
 
@@ -266,9 +244,8 @@ void initClock() {
 }
 
 void printTemp() {
-  int temp = int(round(dht.readTemperature()));
-
-  if (!isnan(temp)) {
+  if (!isnan(dht.readTemperature())) {
+    int temp = int(round(dht.readTemperature()));
     if (temp != preTemp) {
       clearPixel(27, 44, 31, 54);
       display.setTextColor(display.color565(tempR, tempG, tempB));
@@ -654,7 +631,7 @@ void setup(void) {
   display.print(WiFi.localIP());
 
   display_update_enable(true);
-  delay(5000);
+  delay(10000);
   display.clearDisplay();
   clockStatus = true;
   initClock();
