@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 #include "DHT.h"
 #include<math.h>
+#include <EEPROM.h>
 
 #include <Ticker.h>
 #include <PxMatrix.h>
@@ -15,6 +16,9 @@ Ticker display_ticker;
 #include <WiFiUdp.h>
 #include <time.h>
 #include <Fonts/Org_01.h>
+
+const char* wifi_ssid = "TamThanh 1";
+const char* wifi_passwd = "password";
 
 const int DHTPIN = 0;
 const int DHTTYPE = DHT11;
@@ -41,11 +45,16 @@ byte prevhh;
 byte prevmm;
 byte prevss;
 
+int hh = 0, mm = 0, ss = 0;
+
 int dayDLr = 255, dayDLg = 255, dayDLb = 255, monthDLr = 255, monthDLg = 255, monthDLb = 255, yearDLr = 255, yearDLg = 255, yearDLb = 255, dowDLr = 255, dowDLg = 255, dowDLb = 255, dotDLr = 255, dotDLg = 255, dotDLb = 255;
 int dayALr = 255, dayALg = 255, dayALb = 255, monthALr = 255, monthALg = 255, monthALb = 255, yearALr = 255, yearALg = 255, yearALb = 255, dotALr = 255, dotALg = 255, dotALb = 255;
 int hourR = 255, hourG = 255, hourB = 255, minR = 255, minG = 255, minB = 255, secR = 255, secG = 255, secB = 255, colonR = 255, colonG = 255, colonB = 255;
 int flickerColon = 0;
 int tempR = 255, tempG = 255, tempB = 255;
+int timerStatus = 0, hourOn = 0, minOn = 0, hourOff = 0, minOff = 0;
+
+int color[48] = { };
 
 // Pins for LED MATRIX
 #define P_LAT 16
@@ -58,13 +67,12 @@ int tempR = 255, tempG = 255, tempB = 255;
 
 PxMATRIX display(64, 32, P_LAT, P_OE, P_A, P_B, P_C, P_D, P_E);
 
+int brightness = 90;
+
 #define HTTP_REST_PORT 80
 #define WIFI_RETRY_DELAY 500
 
 uint16_t arr[2050];
-
-const char* wifi_ssid = "TamThanh 1";
-const char* wifi_passwd = "password";
 
 //=== SEGMENTS ===
 #include "Digit.h"
@@ -121,21 +129,20 @@ void json_to_arr(String post_body) {
 }
 
 void json_to_color(String post_body) {
-  int color[45];
-  for (int i = 0; i < 43; i++) {
-    color[i] = 0;
-  }
-
   String temp = "";
   int j = 0;
   for (int i = 8; i < post_body.length() - 2; i++) {
     if (post_body[i] != ',') {
       temp += post_body[i];
-      if (j == 42) {
+      if (j == 47) {
         color[j] = temp.toInt();
+//        EEPROM.write(j, temp.toInt());
+//        delay(6);
       }
     } else {
       color[j] = temp.toInt();
+//      EEPROM.write(j, temp.toInt());
+//      delay(6);
       j++;
       temp = "";
     }
@@ -146,6 +153,7 @@ void json_to_color(String post_body) {
   hourR = color[15]; hourG = color[16]; hourB = color[17]; minR = color[18]; minG = color[19]; minB = color[20]; secR = color[21]; secG = color[22]; secB = color[23]; colonR = color[24]; colonG = color[25]; colonB = color[26];
   tempR = color[39]; tempG = color[40]; tempB = color[41];
   flickerColon = color[42];
+  timerStatus = color[43], hourOn = color[44], minOn = color[45], hourOff = color[46], minOff = color[47];
   digit0.SetColor(display.color565(secR, secG, secB));
   digit1.SetColor(display.color565(secR, secG, secB));
   digit2.SetColor(display.color565(minR, minG, minB));
@@ -156,6 +164,19 @@ void json_to_color(String post_body) {
   display.clearDisplay();
   clockStatus = true;
   initClock();
+}
+
+String parseArrColorToString() {
+  String s = "";
+  for (int i = 0; i < 48; i++) {
+    if (i == 47) {
+      s += String(color[i]) + "";
+    } else {
+      s += String(color[i]) + ",";
+    }
+  }
+
+  return s;
 }
 
 void post_arr() {
@@ -188,6 +209,16 @@ void changeColor() {
   }
 }
 
+void sendCurrentColor() {
+  if (http_rest_server.method() == HTTP_POST) {
+    StaticJsonDocument<200> res;
+    char JSONmessageBuffer[200];
+    res["res"] = parseArrColorToString();
+    serializeJsonPretty(res, JSONmessageBuffer, sizeof(JSONmessageBuffer));
+    http_rest_server.send(200, "application/json", JSONmessageBuffer);
+  }
+}
+
 void config_rest_server_routing() {
   http_rest_server.on("/", HTTP_GET, []() {
     http_rest_server.send(200, "text/html",
@@ -195,6 +226,7 @@ void config_rest_server_routing() {
   });
   http_rest_server.on("/arr", HTTP_POST, post_arr);
   http_rest_server.on("/color", HTTP_POST, changeColor);
+  http_rest_server.on("/current_color", HTTP_POST, sendCurrentColor);
 }
 
 // ISR for display refresh
@@ -267,10 +299,6 @@ void printTemp() {
 }
 
 void printDate() {
-  int hh = ntpClient.getHours();
-  int mm = ntpClient.getMinutes();
-  int ss = ntpClient.getSeconds();
-
   if ((hh == 0 && mm == 0 && ss == 1) || firstShowClock == true) {
     //Duong Lich
     time(&now);                       // read the current time
@@ -367,16 +395,9 @@ void printDate() {
 }
 
 void printTime() {
-  ntpClient.update();
   unsigned long epoch = ntpClient.getEpochTime();
-  //Serial.print("GetCurrentTime returned epoch = ");
-  //  Serial.println(epoch);
 
   if (epoch != prevEpoch) {
-    int hh = ntpClient.getHours();
-    int mm = ntpClient.getMinutes();
-    int ss = ntpClient.getSeconds();
-
     if (flickerColon == 0) {
       digit1.DrawColon(display.color565(colonR, colonG, colonB));
       digit3.DrawColon(display.color565(colonR, colonG, colonB));
@@ -615,10 +636,14 @@ void setup(void) {
   Serial.println("HTTP REST Server Started");
 
   ntpClient.begin();
+  ntpClient.update();
+  hh = ntpClient.getHours();
+  mm = ntpClient.getMinutes();
+  ss = ntpClient.getSeconds();
 
   display.begin(16);
   display.clearDisplay();
-  display.setBrightness(90);
+  display.setBrightness(brightness);
   display.setTextSize(1);
 
   display.setTextColor(display.color565(0, 255, 0));
@@ -635,14 +660,38 @@ void setup(void) {
   display.clearDisplay();
   clockStatus = true;
   initClock();
+
+//  for (int i = 0;  i < 48; i++) {
+//    color[i] = EEPROM.read(i);
+//  }
 }
 
 void loop(void) {
   http_rest_server.handleClient();
-
   if (clockStatus) {
-    printTime();
-    printDate();
-    printTemp();
+    ntpClient.update();
+    hh = ntpClient.getHours();
+    mm = ntpClient.getMinutes();
+    ss = ntpClient.getSeconds();
+
+    if (timerStatus == 1) {
+      int currentTime = hh * 3600 + mm;
+      int timerOnTime = hourOn * 3600 + minOn;
+      int timerOffTime = hourOff * 3600 + minOff;
+
+      if (currentTime == timerOffTime && ss == 0) {
+        display.clearDisplay();
+        display.setBrightness(0);
+        return;
+      } else if (currentTime >= timerOffTime && currentTime < timerOnTime) {
+        return;
+      } else if (currentTime == timerOnTime) {
+        display.setBrightness(brightness);
+        initClock();
+      }
+      printTime();
+      printDate();
+      printTemp();
+    }
   }
 }

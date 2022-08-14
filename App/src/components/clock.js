@@ -26,6 +26,10 @@ export default function clock({navigation, route}) {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    getColor();
+  }, []);
+
   const [color, setColor] = useState([
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
@@ -79,11 +83,45 @@ export default function clock({navigation, route}) {
     }
   };
 
+  const getColor = () => {
+    fetch('http://' + route.params.ip + '/current_color', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    })
+      .then(response => response.json())
+      .then(response => {
+        const colorArr = response.res.split(',').map(item => {
+          return parseInt(item);
+        });
+        setColor(colorArr);
+        setFlicker(Boolean(colorArr[42]));
+        setHourOn(colorArr[44]);
+        setHourOff(colorArr[45]);
+        setMinOn(colorArr[46]);
+        setMinOff(colorArr[47]);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+
   const sendColor = () => {
     if (color[43] === 1 && !checkTime()) {
       return;
     }
     setLoading(true);
+
+    var arrColor = [...color];
+    arrColor[44] = hourOn;
+    arrColor[45] = minOn;
+    arrColor[46] = hourOff;
+    arrColor[47] = minOff;
+    setColor(arrColor);
+
     fetch('http://' + route.params.ip + '/color', {
       method: 'POST',
       headers: {
@@ -91,7 +129,7 @@ export default function clock({navigation, route}) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        arr: color,
+        arr: arrColor,
       }),
     })
       .then(response => response.json())
@@ -168,12 +206,6 @@ export default function clock({navigation, route}) {
       minOff >= 0 &&
       minOff <= 59
     ) {
-      var arrColor = [...color];
-      arrColor[44] = hourOn;
-      arrColor[45] = minOn;
-      arrColor[46] = hourOff;
-      arrColor[47] = minOff;
-      setColor(arrColor);
       return true;
     } else {
       Toast.show('Vui lòng kiểm tra lại thời gian bật/tắt', {
