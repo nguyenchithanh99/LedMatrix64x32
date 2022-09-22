@@ -8,8 +8,10 @@ import {
   TouchableOpacity,
   Keyboard,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import Toast from 'react-native-root-toast';
+import Slider from '@react-native-community/slider';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import saveIcon from '../icons/save.png';
 import imageIcon from '../icons/image.png';
@@ -19,21 +21,22 @@ import clockIcon from '../icons/clock.png';
 export default function main({navigation}) {
   const [ip, setIp] = useState('');
   const [clockStatus, setClockStatus] = useState(false);
+  const [slider, setSlider] = useState(1);
 
   const checkIp = () => {
     Keyboard.dismiss();
-    if (ip === '') {
-      Toast.show('Địa chỉ IP trống, vui lòng kiểm tra lại', {
-        position: 0,
+    if (!validateIPaddress(ip)) {
+      Toast.show('Địa chỉ IP không hợp lệ. Vui lòng kiểm tra lại', {
+        position: -20,
         duration: 2500,
       });
     }
   };
 
   const goToNextScreen = type => {
-    if (ip === '') {
-      Toast.show('Địa chỉ IP trống, vui lòng kiểm tra lại', {
-        position: 0,
+    if (!validateIPaddress(ip)) {
+      Toast.show('Địa chỉ IP không hợp lệ. Vui lòng kiểm tra lại', {
+        position: -20,
         duration: 2500,
       });
     } else {
@@ -46,6 +49,108 @@ export default function main({navigation}) {
       }
     }
   };
+
+  const onSetBrightness = () => {
+    if (ip === '') {
+      Toast.show('Địa chỉ IP trống. Vui lòng kiểm tra lại', {
+        position: -20,
+        duration: 2500,
+      });
+      return;
+    }
+
+    fetch('http://' + ip + '/set_brightness', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({brightness: slider}),
+    })
+      .then(response => response.json())
+      .then(response => {
+        if (!response.res === 'Success') {
+          Toast.show('Thiết lập độ sáng không thành công. Vui lòng thử lại', {
+            position: -20,
+            duration: 2500,
+          });
+        }
+      })
+      .catch(err => {
+        console.log(err);
+        Toast.show('Thiết lập độ sáng không thành công. Vui lòng thử lại', {
+          position: -20,
+          duration: 2500,
+        });
+      });
+  };
+
+  const onGetBrightness = () => {
+    fetch('http://' + ip + '/get_brightness', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    })
+      .then(response => response.json())
+      .then(response => {
+        if (response.res) {
+          setSlider(parseInt(response.res) / 10);
+        }
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+
+  const validateIPaddress = ipAddress => {
+    if (
+      /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
+        ipAddress,
+      )
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  const storeData = async value => {
+    try {
+      await AsyncStorage.setItem('@ip', value);
+    } catch (e) {}
+  };
+
+  const getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('@ip');
+      if (value !== null) {
+        setIp(value);
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (validateIPaddress(ip)) {
+        onGetBrightness();
+        storeData(ip);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [ip]);
+
+  useEffect(() => {
+    const timer1s = setTimeout(() => {
+      onSetBrightness();
+    }, 1500);
+    return () => clearTimeout(timer1s);
+  }, [slider]);
+
+  useEffect(() => {
+    getData();
+  }, []);
 
   return (
     <View>
@@ -70,6 +175,24 @@ export default function main({navigation}) {
         <TouchableOpacity onPress={() => checkIp()}>
           <Image style={styles.inputImage} source={saveIcon} />
         </TouchableOpacity>
+      </View>
+
+      <View style={styles.setBrightnessCont}>
+        <Text style={styles.setBrightnessText}>Thiết lập độ sáng</Text>
+        <View style={styles.row}>
+          <Slider
+            style={styles.slider}
+            minimumValue={1}
+            maximumValue={14}
+            minimumTrackTintColor="#c45529"
+            maximumTrackTintColor="#000000"
+            thumbTintColor="#ba562f"
+            step={1}
+            value={slider}
+            onValueChange={value => setSlider(value)}
+          />
+          <Text style={styles.sliderText}>{slider}</Text>
+        </View>
       </View>
 
       <View style={styles.menuCont}>
@@ -100,6 +223,37 @@ export default function main({navigation}) {
 
 const {width, height} = Dimensions.get('window');
 const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  setBrightnessCont: {
+    borderColor: '#8a8a8a',
+    borderRadius: 5,
+    borderWidth: 1,
+    marginTop: 32,
+    width: width / 1.35,
+    alignSelf: 'center',
+    paddingVertical: 5,
+  },
+  setBrightnessText: {
+    color: '#ba562f',
+    position: 'absolute',
+    zIndex: 1,
+    top: -12,
+    left: 5,
+    paddingHorizontal: 10,
+    backgroundColor: '#f2f2f2',
+  },
+  slider: {
+    width: width / 1.6,
+    height: 40,
+  },
+  sliderText: {
+    width: 25,
+    textAlign: 'center',
+  },
   menuCont: {
     marginTop: 40,
     marginHorizontal: 20,

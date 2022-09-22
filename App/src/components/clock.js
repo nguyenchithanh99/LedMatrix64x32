@@ -100,8 +100,8 @@ export default function clock({navigation, route}) {
         setColor(colorArr);
         setFlicker(Boolean(colorArr[42]));
         setHourOn(colorArr[44]);
-        setHourOff(colorArr[45]);
-        setMinOn(colorArr[46]);
+        setMinOn(colorArr[45]);
+        setHourOff(colorArr[46]);
         setMinOff(colorArr[47]);
       })
       .catch(err => {
