@@ -52,7 +52,7 @@ export default function main({navigation}) {
 
   const onSetBrightness = () => {
     if (ip === '') {
-      Toast.show('Địa chỉ IP trống. Vui lòng kiểm tra lại', {
+      Toast.show('Địa chỉ IP trống. Vui lòng nhập địa chỉ IP', {
         position: -20,
         duration: 2500,
       });

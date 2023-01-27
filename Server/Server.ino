@@ -17,8 +17,8 @@ Ticker display_ticker;
 #include <time.h>
 #include <Fonts/Org_01.h>
 
-const char* wifi_ssid = "Private Wifi";
-const char* wifi_passwd = "UrBox@123";
+const char* wifi_ssid = "TamThanh 1";
+const char* wifi_passwd = "password";
 
 const int DHTPIN = 0;
 const int DHTTYPE = DHT11;
@@ -742,5 +742,5 @@ void loop(void) {
     printDate();
     printTemp();
   }
-  delay(700);
+  delay(500);
 }
