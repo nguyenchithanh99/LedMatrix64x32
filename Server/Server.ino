@@ -17,8 +17,8 @@ Ticker display_ticker;
 #include <time.h>
 #include <Fonts/Org_01.h>
 
-const char* wifi_ssid = "TamThanh 1";
-const char* wifi_passwd = "password";
+const char* wifi_ssid = "modum31";
+const char* wifi_passwd = "246813579";
 
 const int DHTPIN = 0;
 const int DHTTYPE = DHT11;
