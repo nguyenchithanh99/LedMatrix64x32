@@ -151,9 +151,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width,
-    height: height / 17,
+    height: height / 8,
     backgroundColor: '#ba562f',
-    paddingTop: 4,
+    paddingTop: 70,
   },
   headerText: {
     color: 'white',

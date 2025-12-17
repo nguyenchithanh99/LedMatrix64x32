@@ -537,7 +537,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  boost: a7c83b31436843459a1961bfd74b96033dc77234
+  boost: 9fa78656d705f55b1220151d997e57e2a3f2cde0
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: 831926d9b8bf8166fd87886c4abab286c2422662
   FBLazyVector: de148e8310b8b878db304ceea2fec13f2c02e3a0
@@ -555,25 +555,25 @@ SPEC CHECKSUMS:
   glog: 5337263514dd6f09803962437687240c5dc39aa4
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   OpenSSL-Universal: 1aa4f6a6ee7256b83db99ec1ccdaa80d10f9af9b
-  RCT-Folly: a21c126816d8025b547704b777a2ba552f3d9fa9
+  RCT-Folly: d493960cebd31fc7918c0574a30a0d3235a7d2e6
   RCTRequired: 59d2b744d8c2bf2d9bc7032a9f654809adcf7d50
   RCTTypeSafety: d0aaf7ccae5c70a4aaa3a5c3e9e0db97efae760e
   React: fbe655dd1d12c052299b61abdc576720098d80fc
   React-callinvoker: a535746608d9bc8b1dea7095ed4d8d3d7aae9a05
-  React-Core: 008d2638c4f80b189c8e170ff2d241027ec517fd
+  React-Core: 27622ffcda8b951e1e162e712b7748a2cbf52337
   React-CoreModules: 91c9a03f4e1b74494c087d9c9a29e89a3145c228
-  React-cxxreact: 9c462fb6d59f865855e2dee2097c7d87b3d2de49
-  React-jsi: 4de8b8d70ba4ed841eb9b772bdb719f176387e21
-  React-jsiexecutor: 433a691aee158533a6a6ee9c86cb4a1684fa2853
+  React-cxxreact: e16bd5c6bae078aa6bf4e65953831f6bd012d545
+  React-jsi: a78b15643c47b5534177f452e8c91451eaf2b504
+  React-jsiexecutor: 8da36cae5a9b5ff77c8ab535509cd65c5887364e
   React-jsinspector: d9c8eb0b53f0da206fed56612b289fec84991157
-  React-logger: e522e76fa3e9ec3e7d7115b49485cc065cf4ae06
-  react-native-get-pixel-color: 68005d505be66fd0329f65e67b2a3db83154fde3
-  react-native-image-picker: c6d75c4ab2cf46f9289f341242b219cb3c1180d3
-  react-native-image-resizer: d9fb629a867335bdc13230ac2a58702bb8c8828f
-  react-native-safe-area: e8230b0017d76c00de6b01e2412dcf86b127c6a3
-  react-native-safe-area-context: 584dc04881deb49474363f3be89e4ca0e854c057
-  react-native-slider: d3ae4270cf8a8cc45a69912db0cc42b151560d5a
-  react-native-splash-screen: 4312f786b13a81b5169ef346d76d33bc0c6dc457
+  React-logger: 84cbb9c2bc25b186ddb6613ffd18ed092b66303e
+  react-native-get-pixel-color: ba928a9adfd38a63376441e5666546bb84801e11
+  react-native-image-picker: dec389bf98be43e2a5defac9cf15819d68f141a0
+  react-native-image-resizer: 17b2d73c030975b6543395c7e7368bc8774c5efa
+  react-native-safe-area: ef18e77a00dc8ff473724853508264599cf215b8
+  react-native-safe-area-context: 1c298d1cee1e333d3f44ea6dc8dfca086bd06242
+  react-native-slider: 26d674f6cb59ecb825a23636a8fd63483f397d13
+  react-native-splash-screen: 95994222cc95c236bd3cdc59fe45ed5f27969594
   React-perflogger: 73732888d37d4f5065198727b167846743232882
   React-RCTActionSheet: 96c6d774fa89b1f7c59fc460adc3245ba2d7fd79
   React-RCTAnimation: 8940cfd3a8640bd6f6372150dbdb83a79bcbae6c
@@ -585,15 +585,15 @@ SPEC CHECKSUMS:
   React-RCTText: 196cf06b8cb6229d8c6dd9fc9057bdf97db5d3fb
   React-RCTVibration: 50cfe7049167cfc7e83ac5542c6fff0c76791a9b
   React-runtimeexecutor: bbbdb3d8fcf327c6e2249ee71b6ef1764b7dc266
-  ReactCommon: 9bac022ab71596f2b0fde1268272543184c63971
-  RNCAsyncStorage: 0c357f3156fcb16c8589ede67cc036330b6698ca
-  RNFS: 3ab21fa6c56d65566d1fb26c2228e2b6132e5e32
-  RNGestureHandler: bf572f552ea324acd5b5464b8d30755b2d8c1de6
-  RNScreens: d6da2b9e29cf523832c2542f47bf1287318b1868
-  RNSketchCanvas: 9c28adb5381543ed55cc98ce6de46479cb3cb12c
+  ReactCommon: 851e201f1a4a097c97fef9e6401c6b8b5f0d5de1
+  RNCAsyncStorage: fdb01edd825ea18d63e6faf50b8989cea24f2dd3
+  RNFS: 4f02bbb5c95d71bade3d36a1b6514305ccefc4c9
+  RNGestureHandler: 0fd5dc72aa844575c4462319e5e72cc4ddce2336
+  RNScreens: 9c5c6b2ef47d0814e6d036339e4588eefad9ac54
+  RNSketchCanvas: f7da2786bf042a29d5ca7a65571507d5c3108a29
   Yoga: 32a18c0e845e185f4a2a66ec76e1fd1f958f22fa
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
 PODFILE CHECKSUM: 3f9448ef1ff25d8465fac12258e7995e36c9a1ab
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.16.2
